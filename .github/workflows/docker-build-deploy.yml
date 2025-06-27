@@ -14,12 +14,14 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write  # Added write permission for version bump commits
       packages: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # Added token for push access
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -40,7 +42,7 @@ jobs:
           CURRENT_VERSION=$(cat VERSION)
           echo "Current version: $CURRENT_VERSION"
           
-          # Increment patch version (you can change to major/minor as needed)
+          # Increment patch version
           IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
           NEW_VERSION="$major.$minor.$((patch + 1))"
           echo "New version: $NEW_VERSION"
@@ -48,9 +50,9 @@ jobs:
           # Update VERSION file
           echo "$NEW_VERSION" > VERSION
           
-          # Set outputs for GitHub Actions
-          echo "::set-output name=current_version::$CURRENT_VERSION"
-          echo "::set-output name=new_version::$NEW_VERSION"
+          # Set outputs using new environment file method
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           
           # Commit the version update
           git config --global user.name "GitHub Actions"
@@ -69,9 +71,3 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
             APP_VERSION=${{ steps.version.outputs.new_version }}
-
-      - name: Deploy to production (example)
-        run: |
-          echo "Deployment would happen here for version ${{ steps.version.outputs.new_version }}"
-          # Example command (replace with your actual deployment):
-          # kubectl set image deployment/my-app my-app=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.new_version }}
