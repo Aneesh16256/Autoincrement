@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: aneesh16256/autoincrement  # Must match exactly your Docker Hub repo
+  IMAGE_NAME: aneesh123123/autoincrement  # Must match exactly your Docker Hub repo
 
 jobs:
   build-and-deploy:
